@@ -1,0 +1,234 @@
+# Import pdfreader for reading
+from pdfreader import SimplePDFViewer
+
+# Import re for regex manipulation
+import re
+
+# Import os for file manipulation
+import os.path
+from os import path
+
+# These are test files. Comment or uncomment the one you want to use.
+file = "C402-A-L-1BRK-MB-PAT-MERITAGE- 317 DURANGO DOWNS DRIVE.pdf"
+# file = "5161-COLINAS II-D-4BRK-DREES-517 FRANCIS COURT.pdf"
+# file = "108 HEDGE GREEN HOLLOW MARKED PLANS.pdf"
+
+#testPath = "C:/Users/dwanegar/Documents/Python Scripts/testFiles/"
+testPath = "C:/Users/bgonzalez/OneDrive - Mustang Plumbing/Desktop/test_files/"
+
+# Make sure this path goes to where your relevant files are
+filepath = testPath + file
+
+# Setup
+pdfFileObj = open(filepath, 'rb')
+viewer = SimplePDFViewer(pdfFileObj)
+
+
+
+longTextRegex = re.compile(r".*[\w\s]{13,}")#saying that any string that has 13 chars or more and is composed of letters
+# or spaces is considered long and is probablyu a note or something
+#^include punctuation, plus right now it excludes all numbers which could lead to some broken cases
+#^on that note, I don't see why we shouldn't just look for a regex of length 13 of any type of characters
+#examples: "3" Stack pulls from M.Bth bay"
+columnTitle = ["FIXTURE", "DOWNPULL", "SIDEPULL"]
+
+#These are the regexes for table titles
+tableTitleRegexes = [
+    re.compile(r"BATH"),
+    re.compile(r"KITCHEN"),
+    re.compile(r"UTILITY"),
+    re.compile(r"POWDER"),
+    re.compile(r"PATIO")
+]
+
+# These regexes could probably be improved. I imagine there are scenarios that break them. Maybe we just fix them as
+# issues are discovered?
+fixtureRegexesFiveSet = [
+    re.compile(r"(?:c|ow|tw|.*overall|\'|\d+\'-\d+(?:1\/2)?\"|[\w\s]{14,})"),
+    #re.compile(r"(?:c|ow|tw|.*overall|\'|\d+\'-\d+(?:1\/2)?\"|[\w\s]{14,})"),
+    #re.compile(r"(?:c|ow|tw|overall|\d+\'-\d+(?:1\/2)?\")"), #This needs to be tested better
+        #list of characters that must be EXCLUDED in the name/first row of a fixture
+    re.compile(r"\d+\'-\d+(?:\s1\/2)?\""),
+        #list of characters that must be INCLUDED in the second column of a fixture, meaning it is a number/measurement
+    re.compile(r"(?:c|ow|tw)"),
+        #list of strings that must be included for third column, meaning the suffix
+    re.compile(r"\d+\'-\d+(?:\s1\/2)?\""),
+    re.compile(r"(?:c|ow|tw)")
+]
+
+#does the same thing as fixtureRegexesFiveSet, but for three column table types
+fixtureRegexesThreeSet = [
+    re.compile(r"(?:c|ow|tw|.*overall|\d+\'(?:-\d+(?:1\/2)?\")?(?:c|ow|tw|overall)|[\w\s]{13,})"),
+    re.compile(r"\d+\'-\d+(?:\s1\/2)?\"(?:c|ow|tw)"),
+    re.compile(r"\d+\'-\d+(?:\s1\/2)?\"(?:c|ow|tw)")
+]
+
+# Detects if a five string set is a fixture
+def fixtureDetectorFiveString(stringSet):
+    isFixture = True
+    if fixtureRegexesFiveSet[0].match(stringSet[0]):
+        isFixture = False
+        #saying that the first column may not contain any of the excluded regexes for it to be a valid fuixture
+    for i in range(1,4):
+        if not fixtureRegexesFiveSet[i].match(stringSet[i]):
+            isFixture = False
+            break
+            #saying that columns 2-5 all must INCLUDE the include regex list regexes for it to be a valid fixture row
+    return isFixture
+
+# Detects if a three string set is a fixture
+def fixtureDetector(stringSet):
+    isFixture = True
+    if fixtureRegexesThreeSet[0].match(stringSet[0]):
+        isFixture = False
+    for i in range(1, 3):
+        if not fixtureRegexesThreeSet[i].match(stringSet[i]):
+            isFixture = False
+            break
+    if isFixture:
+        return isFixture
+    if (len(stringSet) > 4):
+        isFixture = fixtureDetectorFiveString(stringSet)
+    return isFixture
+
+
+def isColumnTitle(stringSet):
+    return stringSet == columnTitle
+
+
+# Verifies 3" stack is actually part of a table
+def verifyStack(stringSet):
+    startIndex = len(stringSet)-3
+    if (longTextRegex.search(stringSet[-1])):
+        startIndex -= 1
+        if startIndex < 0:
+            startIndex = 0
+    if fixtureDetector(stringSet[startIndex:startIndex+3]) or isColumnTitle(stringSet[startIndex:startIndex+3]):
+        return True
+    if len(stringSet) > 4:
+        startIndex -= 2
+        if startIndex < 0:
+            startIndex = 0
+        if fixtureDetectorFiveString(stringSet[startIndex:startIndex+5]):
+            return True
+    return False
+
+# Detects if string is a valid table title
+def detectTableHeader(myString):
+    for regex in tableTitleRegexes:
+        if regex.search(myString):
+            return True
+    return False
+
+# The mandatory room types require minimum one of each type, but any one of a given type will do
+kitchen = ["KITCHEN"]
+bath = ["BATH", "POWDER", "UTILITY"]
+mandatoryRoomTypes = [kitchen, bath]
+
+# Convert mandatoryRoomTypes to a regex list
+mandatoryRoomRegexes = []
+# Add list of rooms successfully verified in tables
+roomVerification = []
+for roomType in mandatoryRoomTypes:
+    # This looks like r"(?=(ROOM1|ROOM2|ROOM3))"
+    roomTypeRegex = r"("+'|'.join(roomType)+r")"
+    mandatoryRoomRegexes.append(roomTypeRegex)
+    roomVerification.append(False)
+
+# Starts in a "pass" state. Failing at any point changes this to failTest = True
+failTest = False
+
+# Whenever any event would cause failTest = True, a relevant string is added to the failLog
+failLog = []
+
+# Dictionary of fixtures generated by above function, fixtureDetector()
+fixtureDict = {}
+threeInchStackIndices = []
+
+# Dictionary of tables generated by items proceeding columnTitle string sets
+tableDict = {}
+
+# counts total number of strings in document
+strings_count = 0
+
+# canvases are pages in a pdf, I think? Regardless, iterate over these
+for canvas in viewer:
+    # Get the list of strings in the canvas. These are ordered by the method the pdf was written, not how it is viewed.
+    page_strings = canvas.strings
+    print(page_strings)
+
+    # Generate the dictionary of table titles, with cumulative page_strings indices as keys
+    for regex in tableTitleRegexes:
+        if len(page_strings) > 1:
+            for j in range(len(page_strings)-1):
+                if (regex.search(page_strings[j]) and page_strings[j+1] == "FIXTURE"):
+                    tableDict[strings_count + j]=page_strings[j]
+
+    # This should generate the list of all the detected fixtures, with cumulative page_strings indices as keys
+    if len(page_strings) > 2:
+        if len(page_strings) > 4:
+            for j in range(len(page_strings)-4):
+                if(fixtureDetector(page_strings[j:j+5])):
+                    isFixture = True
+                    if(page_strings[j] == "3\" STACK"):
+                        isFixture = verifyStack(page_strings[max(j-6, 0):j])
+                    if isFixture:
+                        fixtureDict[strings_count + j]=page_strings[j]
+                        print(page_strings[j:j+5])
+        for j in range(2):
+            if(fixtureDetector(page_strings[-4+j:])):
+                isFixture = True
+                if(page_strings[j] == "3\" STACK"):
+                    isFixture = verifyStack(page_strings[max(j-6, 0):j])
+                if isFixture:
+                    fixtureDict[strings_count + j]=page_strings[-4+j]
+                    print(page_strings[-4+j:])
+    strings_count += len(page_strings)
+
+# Verify that the mandatory rooms have tables
+for i in range(len(mandatoryRoomRegexes)):
+    roomTypeRegex = mandatoryRoomRegexes[i]
+    r = re.compile(roomTypeRegex)
+    for key in tableDict:
+        if (r.search(tableDict[key])):
+            roomVerification[i] = True
+
+
+# If any room hasn't been verified, fail the test. Append the failLog for each.
+for i in range(len(roomVerification)):
+    if not roomVerification[i]:
+        failTest = True
+        failLog.append(mandatoryRoomRegexes[i])
+
+
+
+# Save output to a file
+outFile = "test_results.txt"
+outFilePath = testPath + outFile
+
+with open(outFilePath, "w") as f:
+
+    # Finish the program based on test results.
+    if failTest:
+        # add code to print failLog lines to a file
+        f.write("Test failed, see log.")
+        f.write("\n")
+        f.write("\n")
+        f.write("fail log:")
+        f.write("\n")
+        f.write(str(failLog))
+        f.write("\n")
+    else:
+        f.write("Good job")
+        f.write("\n")
+        f.write("\n")
+
+    f.write("There were " + str(len(tableDict.values())) + " tables and " + str(len(fixtureDict.values())) + " fixtures detected.\n")
+
+    # Keys are indices, which saves us the trouble of ordering our values
+    f.write("They are organized in the pdf as follows:\n")
+    for key in range(strings_count):
+        if key in tableDict.keys():
+            f.write("\n" + tableDict[key] + ":\n")
+        if key in fixtureDict.keys():
+            f.write("    " + fixtureDict[key] + "\n")
