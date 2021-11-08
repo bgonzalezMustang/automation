@@ -20,6 +20,7 @@ cadDWGsPath = 'S:/CAD/Plans'
 
 builderCorrectSpellings = {
     'ARBOGAST CUSTOM': 'ARBOGAST',
+    'ARBOBGAST':'ARBOGAST',
     'DAVID WEEKLY': 'DAVID WEEKLEY',
     'EMPIRE': 'EMPIRE-CENTERRA',
     'CENTERRA': 'EMPIRE-CENTERRA',
@@ -29,7 +30,8 @@ builderCorrectSpellings = {
     'PNL BUILDERS': 'PNL',
     'PNL HOMES': 'PNL',
     'VALE BUILDER GROUP': 'VALE',
-    'SYMCOX':'MICHAUX SYMCOX'
+    'SYMCOX':'MICHAUX SYMCOX',
+    'TOLL BROTHERS':'TOLL BROS'
 }
 
 builderPaths = {

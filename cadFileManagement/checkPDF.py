@@ -23,12 +23,12 @@ class StackCounter:
         self.stacksCount3inTables = 0
     
     def addStack(self, stackString, isFixture):
-        if stackString.upper() == "2\" STACK'":
+        if stackString.upper() == "2\" STACK":
             if isFixture:
                 self.stacksCount2inTables += 1
             else:
                 self.stacksCount2inFloating += 1
-        if stackString.upper() == "3\" STACK'":
+        elif stackString.upper() == "3\" STACK":
             if isFixture:
                 self.stacksCount3inTables += 1
             else:
@@ -37,10 +37,13 @@ class StackCounter:
     def verify(self):
         outString = ""
         if (self.stacksCount2inFloating != self.stacksCount2inTables):
-            outString = outString + "Issues with 2\" STACK count. Identifying " + self.stacksCount2inFloating + " in the drawing and " + self.stacksCount2inTables " in the tables. Please verify.\n"
+            outString = outString + "Issues with 2\" STACK count. Identifying " + str(self.stacksCount2inFloating) + " in the drawing and " + str(self.stacksCount2inTables) + " in the tables. Please verify.\n"
         if (self.stacksCount3inFloating != self.stacksCount3inTables):
-            outString = outString + "Issues with 2\" STACK count. Identifying " + self.stacksCount3inFloating + " in the drawing and " + self.stacksCount3inTables " in the tables. Please verify.\n"
+            outString = outString + "Issues with 3\" STACK count. Identifying " + str(self.stacksCount3inFloating) + " in the drawing and " + str(self.stacksCount3inTables) + " in the tables. Please verify.\n"
         return outString
+    
+    def discrepancy(self):
+        return ((self.stacksCount2inTables + self.stacksCount3inTables) - (self.stacksCount2inFloating + self.stacksCount3inFloating))/2
 
 
 class PDFChecker:
@@ -111,6 +114,48 @@ class PDFChecker:
                 #saying that columns 2-5 all must INCLUDE the include regex list regexes for it to be a valid fixture row
         return isFixture
 
+    def convertStringToPulls(self, stringSet):
+        if type(stringSet) == str:
+            return self.readPullShort(stringSet)
+        elif len(stringSet) == 2:
+            return self.readPullLong(stringSet)
+        return None, None
+
+    def fixtureDetectorBeta(self, stringset):
+        isFixture = True
+        fixtureTitle = ""
+        pullCount = 0
+        pullInches = []
+        pullDim = []
+        if self.fixtureRegexesThreeSet[0].match(stringset[0]):
+            return False, None
+        else:
+            fixtureTitle = stringset[0]
+        i = 1
+        while (i < len(stringset) and pullCount < 2):
+            if self.fixtureRegexesThreeset[1].match(stringset[i]):
+                numInches, strDim = self.convertStringToPulls(stringset[i])
+                pullInches.append(numInches)
+                pullDim.append(strDim)
+                pullCount += 1
+                i += 1
+            elif i+1 < len(stringset):
+                if self.fixtureRegexesFiveSet[1].match(stringset[i]) and self.fixtureRegexesFiveSet[2].match(stringset[i+1]):
+                    numInches, strDim = self.convertStringToPulls(stringset[i:i+2])
+                    pullInches.append(numInches)
+                    pullDim.append(strDim)
+                    pullCount += 1
+                    i += 2
+                else:
+                    isFixture = False
+                    break
+            else:
+                isFixture = False
+                break
+        if isFixture:
+            return isFixture, Fixture(fixtureTitle, pullInches[0], pullDim[0], pullInches[1], pullDim[1])
+        return False, None
+
     # Detects if a string set is a fixture
     def fixtureDetector(self, stringSet):
         isFixture = True
@@ -157,6 +202,16 @@ class PDFChecker:
             return self.convertFiveStringSetToPulls(stringSet)
         else:
             return "", 0, "", 0, ""
+
+    def inchesAsFtInString(self, totalInches):
+        feet = int(totalInches/12)
+        inches = int(totalInches%12)
+        return str(feet) + "\'-" + str(inches) + "\""
+    
+    def pullPresentation(self, fixture):
+        presentationString = self.inchesAsFtInString(fixture.downpullInches) + fixture.downpullDim + " downpull and " + \
+                             self.inchesAsFtInString(fixture.sidepullInches) + fixture.sidepullDim + " sidepull"
+        return presentationString
 
     def isColumnTitle(self, stringSet):
         return stringSet == self.columnTitle
@@ -242,27 +297,29 @@ class PDFChecker:
                     for j in range(len(page_strings)-4):
                         isFixture, setSize = self.fixtureDetector(page_strings[j:j+5])
                         if(isFixture):
-                            if(j > 1 and (page_strings[j].upper() == "3\" STACK" or "2\" STACK")):
+                            if(j > 1 and (page_strings[j].upper() == "3\" STACK" or page_strings[j].upper() == "2\" STACK")):
                                 isFixture = self.verifyStack(page_strings[max(j-6, 0):j])
-                                stackCounter.addStack(page_strings[j], isFixture)
+                            elif (j <= 1 and (page_strings[j].upper() == "3\" STACK" or page_strings[j].upper() == "2\" STACK")):
+                                isFixture = False
                             if isFixture:
                                 # print(setSize, page_strings[j:j+5])
                                 fixtureDict[strings_count + j]= Fixture(*self.convertStringSetToPulls(setSize, page_strings[j:j+5]))
                                 # fixtureDict[strings_count + j]=page_strings[j]
-                        elif (self.checkAddress(page_strings[j], streetAddress)):
+                        elif self.checkAddress(page_strings[j], streetAddress):
                             addressMatch = True
-                for j in range(2):
-                    isFixture, setSize = self.fixtureDetector(page_strings[-4+j:])
+                        stackCounter.addStack(page_strings[j], isFixture)
+                for j in range(max(0,len(page_strings)-4),len(page_strings)-2):
+                    isFixture, setSize = self.fixtureDetector(page_strings[j:j+3])
                     if(isFixture):
-                        if(page_strings[j].upper() == "3\" STACK" or "2\" STACK"):
+                        if(page_strings[j].upper() == "3\" STACK" or page_strings[j].upper() == "2\" STACK"):
                             isFixture = self.verifyStack(page_strings[max(j-6, 0):j])
-                            stackCounter.addStack(page_strings[j], isFixture)
                         if isFixture:
                             # fixtureDict[strings_count + j]=page_strings[-4+j]
-                            fixtureDict[strings_count + j]=Fixture(*self.convertStringSetToPulls(setSize, page_strings[-4+j:]))
+                            fixtureDict[strings_count + j]=Fixture(*self.convertStringSetToPulls(setSize, page_strings[j:]))
                             # print(page_strings[-4+j:])
-                    elif (self.checkAddress(page_strings[-4+j], streetAddress) or self.checkAddress(page_strings[-2+j], streetAddress)):
+                    elif self.checkAddress(page_strings[j], streetAddress):
                         addressMatch = True
+                    stackCounter.addStack(page_strings[j], isFixture)
             strings_count += len(page_strings)
 
         # Verify the address
@@ -277,7 +334,6 @@ class PDFChecker:
             for key in tableDict:
                 if (r.search(tableDict[key])):
                     roomVerification[i] = True
-
 
         # If any room hasn't been verified, fail the test. Append the failLog for each.
         for i in range(len(roomVerification)):
@@ -295,39 +351,21 @@ class PDFChecker:
                 numCenters += 1
             if numCenters == 0:
                 failTest = True
-                failLog.append(fixtureDict[key].name + " at " +
-                    str(fixtureDict[key].downpullInches) + fixtureDict[key].downpullDim + 
-                    " downpull and " +
-                    str(fixtureDict[key].sidepullInches) + fixtureDict[key].sidepullDim +
-                    " sidepull has too many pulls on a wall\n")
+                failLog.append(fixtureDict[key].name + " at " + self.pullPresentation(fixtureDict[key]) + " has too many pulls on a wall\n")
             elif re.compile(centerFixtureRegex).match(fixtureDict[key].name) and numCenters == 1:
                 failTest = True
-                failLog.append(fixtureDict[key].name + " at " +
-                    str(fixtureDict[key].downpullInches) + fixtureDict[key].downpullDim + 
-                    " downpull and " +
-                    str(fixtureDict[key].sidepullInches) + fixtureDict[key].sidepullDim +
-                    " sidepull should not be on a wall\n")
+                failLog.append(fixtureDict[key].name + " at " + self.pullPresentation(fixtureDict[key]) + " should not be on a wall\n")
             elif re.compile(wallFixtureRegex).match(fixtureDict[key].name) and numCenters == 2:
                 failTest = True
-                failLog.append(fixtureDict[key].name + " at " +
-                    str(fixtureDict[key].downpullInches) + fixtureDict[key].downpullDim + 
-                    " downpull and " +
-                    str(fixtureDict[key].sidepullInches) + fixtureDict[key].sidepullDim +
-                    " sidepull should have one pull on a wall\n")
+                failLog.append(fixtureDict[key].name + " at " + self.pullPresentation(fixtureDict[key]) + " should have one pull on a wall\n")
 
         for key in fixtureDict.keys():
             if fixtureDict[key].downpullInches < 12 and fixtureDict[key].downpullDim == 'tw':
                 failTest = True
-                failLog.append(str(fixtureDict[key].downpullInches) + fixtureDict[key].downpullDim + 
-                    " downpull and " +
-                    str(fixtureDict[key].sidepullInches) + fixtureDict[key].sidepullDim +
-                    " sidepull has a \'tw\' very close to an exterior wall\n")
+                failLog.append(self.pullPresentation(fixtureDict[key]) + " has a \'tw\' very close to an exterior wall\n")
             if fixtureDict[key].sidepullInches < 12 and fixtureDict[key].sidepullDim == 'tw':
                 failTest = True
-                failLog.append(str(fixtureDict[key].downpullInches) + fixtureDict[key].downpullDim + 
-                    " downpull and " +
-                    str(fixtureDict[key].sidepullInches) + fixtureDict[key].sidepullDim +
-                    " sidepull has a \'tw\' very close to an exterior wall\n")
+                failLog.append(self.pullPresentation(fixtureDict[key]) + " has a \'tw\' very close to an exterior wall\n")
                 
 
         brickRegex = r'(\d)BRK'
@@ -336,28 +374,32 @@ class PDFChecker:
             for key in fixtureDict.keys():
                 if fixtureDict[key].sidepullInches < 7:
                     failTest = True
-                    failLog.append(fixtureDict[key].name + " at " +
-                        str(fixtureDict[key].downpullInches) + fixtureDict[key].downpullDim + 
-                        " downpull and " +
-                        str(fixtureDict[key].sidepullInches) + fixtureDict[key].sidepullDim +
-                        " sidepull might not be accounting for brick in the sidepull\n")
+                    failLog.append(fixtureDict[key].name + " at " + self.pullPresentation(fixtureDict[key]) + " might not be accounting for brick in the sidepull\n")
                 if numBricks == 4 and fixtureDict[key].downpullInches < 7:
                     failTest = True
-                    failLog.append(fixtureDict[key].name + " at " +
-                        str(fixtureDict[key].downpullInches) + fixtureDict[key].downpullDim + 
-                        " downpull and " +
-                        str(fixtureDict[key].sidepullInches) + fixtureDict[key].sidepullDim +
-                        " sidepull might not be accounting for brick in the downpull\n")
+                    failLog.append(fixtureDict[key].name + " at " + self.pullPresentation(fixtureDict[key]) + " might not be accounting for brick in the downpull\n")
         
-        tempString = stackCounter.verify()
-        if tempString != "":
-            failTest = True
-            failLog.append(tempString)
+        # Test to see if the stacks in tables matches the stacks in the drawing
+        stackFailString = stackCounter.verify()
+        stackFail = False
+        if stackFailString != "":
+            stackFail = True
+            # failLog.append(stackFailString)
+
+        # Test to see if tables are empty
+        emptyTable = False
+        for key in range(strings_count):
+            if key in fixtureDict.keys():
+                emptyTable = False
+            if key in tableDict.keys():
+                if emptyTable:
+                    failTest = True
+                    failLog.append("Empty table: " + tableDict[key] + '\n')
+                emptyTable = True
 
         # Save output to a file
-        outFile = "SCRIPT CHECK RESULTS.txt"
+        outFile = "!SCRIPT CHECK RESULTS.txt"
         outFilePath = pdfToCheck.removesuffix(filename) + outFile
-
         with open(outFilePath, "w") as f:
 
             # Finish the program based on test results.
@@ -366,7 +408,7 @@ class PDFChecker:
                 f.write("Test failed, see log.")
                 f.write("\n")
                 f.write("\n")
-                f.write("fail log:")
+                f.write("Fail Log:")
                 f.write("\n")
                 for logEntry in failLog:
                     f.write(str(logEntry))
@@ -374,8 +416,9 @@ class PDFChecker:
             else:
                 f.write("Good job")
                 f.write("\n")
-                f.write("\n")
 
+            f.write("\n")
+            f.write("Fixture Summary:")
             numWHs = 0
             for val in fixtureDict.values():
                 if (val.name.upper() == 'WH' or val.name.upper() == 'W/H' or val.name.upper() == 'WTRHTR' or val.name.upper() == 'WTR HTR'):
@@ -384,12 +427,16 @@ class PDFChecker:
                 f.write("There were " + str(len(tableDict.values())) + " tables and " + str(len(fixtureDict.values())) + " rough fixtures detected.\n")
             else:
                 f.write("There were " + str(len(tableDict.values())) + " tables, " + str(len(fixtureDict.values()) - numWHs) + " rough fixtures, and " + str(numWHs) + " WH(s) detected.\n")
+            if stackFail:
+                f.write(stackFailString)
+                f.write("If the stack discrepancy is a scripting mislabel, there should be " + str(len(fixtureDict.values()) - numWHs - stackCounter.discrepancy()) + " rough fixtures.\n")
             # Keys are indices, which saves us the trouble of ordering our values
             f.write("They are organized in the pdf as follows:\n")
             for key in range(strings_count):
                 if key in tableDict.keys():
                     f.write("\n" + tableDict[key] + ":\n")
                 if key in fixtureDict.keys():
-                    f.write("    " + fixtureDict[key].name + "\n")
-        
+                    f.write("    " + fixtureDict[key].name + " at " + self.pullPresentation(fixtureDict[key]) + "\n")
+        pdfFileObj.close()
+        print("finished checking?")
         return not(failTest)

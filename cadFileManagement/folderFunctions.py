@@ -4,9 +4,11 @@ import winshell
 import pythoncom
 from pathlib import Path
 import shutil
+import time
 
 # refData.py contains all of our desired reference data
 from refData import *
+from checkPDF import *
 
 # Given a folder, identify the non-OLD cad pdf (should be the only pdf that contains BRK and does not contain OLD)
 # From the pdf name, identify the builder
@@ -37,28 +39,32 @@ def createOldCopy(cadFiles):
                     count += 1
     shutil.copy(cadFiles['folderPath']+'/'+cadFiles['pdfName']+'.pdf', cadFiles['folderPath']+'/OLD'+str(count)+'-'+cadFiles['pdfName']+'.pdf')
 
-def parsePDF(folderPath, pdfName):
-    return False
 
 def checkScript(cadFiles):
-    passTest = parsePDF(cadFiles['folderPath'], cadFiles['pdfName'])
+    pdfChecker = PDFChecker()
+    passTest = pdfChecker.checkPDF(cadFiles['folderPath'] + '/' + cadFiles['pdfName'] + '.pdf')
+    print(passTest)
     # If pass, move to Ready For Check
     if passTest:
         shutil.move(cadFiles['folderPath'],readyToCheckPath+'/DRAWN BY '+cadFiles['author']+'/'+cadFiles['folderName'])
+        print('moved to '+readyToCheckPath+'/DRAWN BY '+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
     # Else, kick back to In Progress
     else:
+        createShortcut(cadFiles)
         shutil.move(cadFiles['folderPath'],cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'])
+        print('moved to '+cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
     return None
 
 def moveToFinished(cadFiles):
     # If builder on list, move to FINISHED FROM CAD in the respective builder file
     if cadFiles['builder'] in builderPaths.keys():
         shutil.move(cadFiles['folderPath'],publicDownloadsPath+'/'+cadFiles['folderName'])
+        time.sleep(15)
         shutil.move(publicDownloadsPath+'/'+cadFiles['folderName'],finishedFromCADPath+'/'+builderPaths[cadFiles['builder']]['FFC']+'/'+cadFiles['folderName'])
     # If builder not on list (likely PEBKAC), move back to NEEDS CORRECTIONS w/ note
     else:
         shutil.move(cadFiles['folderPath'],checkInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'])
-        Path(checkInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName']+'/'+'ERROR - BUILDER NAME NOT FOUND.txt').touch()
+        Path(checkInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName']+'/'+'!ERROR - BUILDER NAME NOT FOUND.txt').touch()
     return None
 
 def moveToInProgress(cadFiles):
@@ -75,7 +81,7 @@ def createShortcut(cadFiles):
                     return None
     # Sets target to none, then searches the builder path for a DWG with the PDF's name
     target = None
-    if not(cadFiles['builder'] is None):
+    if cadFiles['builder'] is builderPaths.keys():
         for folder in os.walk(cadDWGsPath + '/' + builderPaths[cadFiles['builder']]['DWG']):
             if target != None:
                 break
@@ -83,6 +89,15 @@ def createShortcut(cadFiles):
                 if item != None and cadFiles['pdfName'] in item and '.dwg' in item:
                     target = folder[0] + '/' + item
                     break
+    else:
+        for folder in os.walk(cadDWGsPath):
+            if target != None:
+                break
+            for item in folder[2]:
+                if item != None and cadFiles['pdfName'] in item and '.dwg' in item:
+                    target = folder[0] + '/' + item
+                    break
+
     # If a target is found, make a shortcut
     if target != None:
         pythoncom.CoInitialize()
