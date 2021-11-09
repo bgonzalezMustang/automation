@@ -24,7 +24,10 @@ def identifyCAD(folderPath):
                         pdfName = pdfName.removesuffix(suffix)
                         if pdfName != pdfNameOld:
                             shutil.move(folder[0]+'/'+pdfNameOld+'.pdf',folder[0]+'/'+pdfName+'.pdf')
-                    builder = builderRegex.match(item).group(1).strip()
+                    builder = None
+                    builderMatch = builderRegex.match(item)
+                    if builderMatch:
+                        builder = builderMatch.group(1).strip()
                     return pdfName, builder
     return None, None
 
