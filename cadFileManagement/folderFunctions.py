@@ -49,29 +49,29 @@ def checkScript(cadFiles):
     print(passTest)
     # If pass, move to Ready For Check
     if passTest:
-        shutil.move(cadFiles['folderPath'],readyToCheckPath+'/DRAWN BY '+cadFiles['author']+'/'+cadFiles['folderName'])
+        shutil.move(cadFiles['folderPath'],readyToCheckPath+'/DRAWN BY '+cadFiles['author'])
         print('moved to '+readyToCheckPath+'/DRAWN BY '+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
     # Else, kick back to In Progress
     else:
         createShortcut(cadFiles)
-        shutil.move(cadFiles['folderPath'],cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'])
+        moveToInProgress(cadFiles)
         print('moved to '+cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
     return None
 
 def moveToFinished(cadFiles):
     # If builder on list, move to FINISHED FROM CAD in the respective builder file
     if cadFiles['builder'] in builderPaths.keys():
-        shutil.move(cadFiles['folderPath'],publicDownloadsPath+'/'+cadFiles['folderName'])
+        shutil.move(cadFiles['folderPath'],publicDownloadsPath)
         time.sleep(15)
-        shutil.move(publicDownloadsPath+'/'+cadFiles['folderName'],finishedFromCADPath+'/'+builderPaths[cadFiles['builder']]['FFC']+'/'+cadFiles['folderName'])
+        shutil.move(publicDownloadsPath+'/'+cadFiles['folderName'],finishedFromCADPath+'/'+builderPaths[cadFiles['builder']]['FFC'])
     # If builder not on list (likely PEBKAC), move back to NEEDS CORRECTIONS w/ note
     else:
-        shutil.move(cadFiles['folderPath'],checkInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'])
+        shutil.move(cadFiles['folderPath'],checkInProgressPath+'/'+cadFiles['author'])
         Path(checkInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName']+'/'+'!ERROR - BUILDER NAME NOT FOUND.txt').touch()
     return None
 
 def moveToInProgress(cadFiles):
-    shutil.move(cadFiles['folderPath'],cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'])
+    shutil.move(cadFiles['folderPath'],cadInProgressPath+'/'+cadFiles['author'])
     return None
 
 # searches builder directory for dwg with same name as pdf
