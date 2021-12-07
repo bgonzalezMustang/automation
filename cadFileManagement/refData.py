@@ -19,14 +19,19 @@ finishedFromCADPath = homePath + 'Mustang Plumbing/CAD Plans - General/FINISHED 
 cadDWGsPath = 'S:/CAD/Plans'
 
 builderCorrectSpellings = {
+    'AHV': 'AHV COMMUNITIES',
     'ARBOGAST CUSTOM': 'ARBOGAST',
     'ARBOBGAST':'ARBOGAST',
     'DAVID WEEKLY': 'DAVID WEEKLEY',
+    'DANNEN DEVELOPMENT': 'DANNEN DEVELOP',
     'EMPIRE': 'EMPIRE-CENTERRA',
     'CENTERRA': 'EMPIRE-CENTERRA',
     'IN TOWN': 'INTOWN HOMES',
     'INTOWN': 'INTOWN HOMES',
     'IN TOWN HOMES': 'INTOWN HOMES',
+    'LAURAL HAVEN': 'LAUREL HAVEN HOMES',
+    'LAUREL HAVEN': 'LAUREL HAVEN HOMES',
+    'LEGACY': 'LEGACY MCS',
     'PNL BUILDERS': 'PNL',
     'PNL HOMES': 'PNL',
     'VALE BUILDER GROUP': 'VALE',
@@ -37,9 +42,11 @@ builderCorrectSpellings = {
 builderPaths = {
     'ALEXANDER HOMES': {'FFC':'Alexander Homes',
             'DWG':'ALEXANDER HOMES/AUTOCAD DWGS'},
+    'AHV COMMUNITIES': {'FFC':'AHV Communities',
+            'DWG':'AHV COMMUNITIES/AUTOCAD DWGS'},
     'ARBOGAST': {'FFC':'Arbogast Custom',
             'DWG':'ARBOGAST/AUTOCAD DWGS'},
-	'ASH CREEK': {'FFC':'Ash Creek',
+    'ASH CREEK': {'FFC':'Ash Creek',
             'DWG':'ASH CREEK/AUTOCAD DWGS'},
     'ASHTON WOODS': {'FFC': 'Miscellaneous',
             'DWG': 'ASHTON WOODS/AUTOCAD DWGS'},

@@ -29,6 +29,16 @@ def identifyCAD(folderPath):
                         builderMatch = builderRegex.match(item)
                         if builderMatch:
                             builder = builderMatch.group(1).strip()
+                            if builder in builderCorrectSpellings.keys():
+                                builder = builderCorrectSpellings[builder]
+                            if builder not in builderPaths.keys():
+                                pdfNameStrings = pdfName.split('-')
+                                for value in pdfNameStrings:
+                                    if value in builderCorrectSpellings.keys():
+                                        value = builderCorrectSpellings[value]
+                                    if value in builderPaths.keys():
+                                        builder = value
+                                        break
                         return pdfName, builder
     except:
         print("identifyCAD()")
@@ -60,11 +70,12 @@ def checkScript(cadFiles):
             print('moved to '+readyToCheckPath+'/DRAWN BY '+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
         # Else, kick back to In Progress
         else:
-            createShortcut(cadFiles)
             shutil.move(cadFiles['folderPath'],cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'])
             print('moved to '+cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
     except:
-        print("checkScript() issue")
+        shutil.move(cadFiles['folderPath'],cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'])
+        print('moved to '+cadInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
+        Path(checkInProgressPath+'/'+cadFiles['author']+'/'+cadFiles['folderName']+'/'+'!ERROR - CHECKING SCRIPT FAILURE.txt').touch()
     return None
 
 def moveToFinished(cadFiles):

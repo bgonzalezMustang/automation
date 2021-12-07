@@ -100,6 +100,7 @@ class Handler(FileSystemEventHandler):
                         # Both cases add a note about table structure, fixture counts, and includes any fail reasons
                     elif(eventLocation == checkScriptPath):
                         print("check script")
+                        createShortcut(cadFiles)
                         checkScript(cadFiles)
                     
                     # Else if MTF,
@@ -107,6 +108,7 @@ class Handler(FileSystemEventHandler):
                         # If builder on list, move to FINISHED FROM CAD in the respective builder file
                     elif(eventLocation == moveToFinishedPath):
                         print("move to finished")
+                        createShortcut(cadFiles)
                         moveToFinished(cadFiles)
 
                 except:
