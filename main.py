@@ -8,6 +8,8 @@ import time
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from datetime import datetime
+import math
 
 class MonitorFolder(FileSystemEventHandler):
    def on_created(self, event):
@@ -18,12 +20,63 @@ class MonitorFolder(FileSystemEventHandler):
         blah = fileName[len(fileName)-1]
 
         print(getProblemReport(event))
-        #print(getProblemReport(event))
+        
 
         myMsg.text(blah + " is in \"!!Needs Builder Info\". It has a problem report:\n" + getProblemReport(event))
         
 
         myMsg.send()
+
+class Folder:
+    def __init__(self, path):
+        self.path = path
+        nameArray = str(self.path).split("\\")
+        self.name = nameArray[len(nameArray)-1]
+        self.createTime = time.ctime(os.path.getctime(self.path))
+        self.age = math.ceil(int(time.time() - os.path.getctime(self.path)) / (60 * 60 * 24))
+        self.amIOld(self.age)
+        self.ProblemReport()
+    def amIOld(self, age):
+        if age > 10:
+            self.old = True
+        else:
+            self.old = False
+    def ProblemReport(self):
+        txtList = [f for f in os.listdir(self.path) if f.endswith('.txt')]
+
+        for title in txtList:
+            if "problem" or "Problem" or "PROBLEM" in str(title):
+                pRPath = str(self.path + "\\" + title)
+                #self.problemReportPath = problemReportPath
+            else:
+                return
+        try:
+            with open(pRPath, 'r') as blah:
+                self.pRText = blah.read()
+        except:
+            return
+        # return problemReportText
+
+
+
+def generateLateList():
+    needsBuilderInfoPath = "C:\\Users\\bgonzalez\\Mustang Plumbing\\CAD Plans - General\\!! NEEDS BUILDER INFO"
+    folderList = []
+    oldFolderList = []
+
+    oldIndex = 0
+    index = 0
+    for entry in os.listdir(needsBuilderInfoPath):
+        pathName = needsBuilderInfoPath + "\\" +  str(entry)
+        folderList.append(Folder(pathName))
+
+        print(f"Address: {folderList[index].name} is {folderList[index].age} days old")
+        
+        if folderList[index].old:
+            oldFolderList.append(folderList[index])
+            print(f" and is old, with Problem: \n{folderList[index].pRText}")
+        
+        index += 1
 
 
 def getProblemReport(event):
@@ -44,6 +97,7 @@ if __name__ == "__main__":
     observer = Observer()
     observer.schedule(event_handler, path=src_path)
     print("Monitoring started")
+    #generateLateList()
     observer.start()
     try:
         while(True):
