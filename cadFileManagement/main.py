@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+#from cadFileManagement.folderFunctions import moveToReady, moveToReadyToCheck
 
 # refData.py contains all of our desired reference data
 from refData import *
@@ -37,7 +38,7 @@ class Handler(FileSystemEventHandler):
         if event.is_directory and event.event_type == 'created':
             # Event is created, you can process it now
             # print("Watchdog received created event - % s." % event.src_path)
-
+            print("ACTIVE")
             eventPath = event.src_path.replace('\\','/')
             # Determine whether folder is in Needs Correction, Make Shortcut, Check Script, or Move To Finished
             eventPathStringset = eventPath.split('/')
@@ -92,16 +93,19 @@ class Handler(FileSystemEventHandler):
                     elif(eventLocation == makeShortcutPath):
                         print("make shortcut")
                         createShortcut(cadFiles)
-                        moveToInProgress(cadFiles)
+                        #moveToInProgress(cadFiles)
+                        
 
                     # Else if CS, run checking script which
                         # If pass, move to Ready For Check
                         # Else, kick back to In Progress
                         # Both cases add a note about table structure, fixture counts, and includes any fail reasons
-                    elif(eventLocation == checkScriptPath):
-                        print("check script")
+                    elif(eventLocation == moveToRTCPath):
+                        print("move to rtc")
                         createShortcut(cadFiles)
-                        checkScript(cadFiles)
+                        #checkScript(cadFiles)
+                        moveToReady(cadFiles)
+
                     
                     # Else if MTF,
                         # If builder not on list (likely PEBKAC), move back to CHECK IN PROGRESS w/ note

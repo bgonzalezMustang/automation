@@ -10,6 +10,7 @@ needsCorrectionPath = homePath + 'Mustang Plumbing/CAD Plans - General/CAD - WOR
 makeShortcutPath = homePath + 'Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(0) - MAKE SHORTCUT'
 checkScriptPath = homePath + 'Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(1) - CHECK SCRIPT'
 moveToFinishedPath = homePath + 'Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(2) - MOVE TO FINISHED'
+moveToRTCPath = homePath + 'Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(1) - MOVE TO RTC'
 
 cadInProgressPath = homePath + 'Mustang Plumbing/CAD Plans - General/CAD - WORKING/0 - IN PROGRESS'
 readyToCheckPath = homePath + 'Mustang Plumbing/CAD Plans - General/CAD - WORKING/1 - READY TO CHECK'          #Note: full path will include /DRAWN BY <AUTHOR>, instead of /AUTHOR
@@ -32,6 +33,7 @@ builderCorrectSpellings = {
     'LAURAL HAVEN': 'LAUREL HAVEN HOMES',
     'LAUREL HAVEN': 'LAUREL HAVEN HOMES',
     'LEGACY': 'LEGACY MCS',
+    'PERRY HOMES' : 'PERRY',
     'PNL BUILDERS': 'PNL',
     'PNL HOMES': 'PNL',
     'VALE BUILDER GROUP': 'VALE',
@@ -235,6 +237,7 @@ builderPaths = {
 watchedDirectories = [needsCorrectionPath,
                       makeShortcutPath,
                       checkScriptPath,
+                      moveToRTCPath,
                       moveToFinishedPath]
 
 pdfBrickRegex = re.compile("^(?!OLD)(.*BRK-.*)\.pdf$")
@@ -247,3 +250,6 @@ suffixList = ['-LANDSCAPE',
                 '-L',
                 '-RIGHT',
                 '-R']
+
+builders = ["-" + char for char in builderPaths.keys()]
+suffixList.extend(builders)

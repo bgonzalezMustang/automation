@@ -100,6 +100,15 @@ def moveToInProgress(cadFiles):
         print("moveToInProgress() issue")
     return None
 
+#written/plagarized by Baxter, likely trash that breaks everything - BTrain
+def moveToReady(cadFiles):
+    try:
+        shutil.move(cadFiles['folderPath'],readyToCheckPath+'/DRAWN BY '+cadFiles['author']+'/'+cadFiles['folderName'])
+        print('moved to '+readyToCheckPath+'/DRAWN BY '+cadFiles['author']+'/'+cadFiles['folderName'] + '\n')
+    except:
+        print("moveToReady() issue")
+    return None
+
 # searches builder directory for dwg with same name as pdf
 def createShortcut(cadFiles):
     try:
@@ -139,3 +148,4 @@ def createShortcut(cadFiles):
     except:
         print("createShortcut() issue")
     return None
+
