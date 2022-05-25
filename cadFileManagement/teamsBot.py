@@ -1,16 +1,21 @@
-
+#https://mustangplumbingrr.webhook.office.com/webhookb2/480b28ef-9e5f-41ea-a054-69b691add8d5@f1799ac8-2ec2-4176-9072-180ec0e2aeca/IncomingWebhook/a8e96abd9fb64dccafce90bf026b3817/cb9afd51-7b6c-433e-a359-1145dec1b260
+#^webhook for notifications bot
 
 import pymsteams
 import os
 import time
 from pathlib import Path
 from datetime import datetime
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from datetime import datetime
 import math
 
 from refData import *
 
-#myMsg = pymsteams.connectorcard("https://mustangplumbingrr.webhook.office.com/webhookb2/480b28ef-9e5f-41ea-a054-69b691add8d5@f1799ac8-2ec2-4176-9072-180ec0e2aeca/IncomingWebhook/a8e96abd9fb64dccafce90bf026b3817/cb9afd51-7b6c-433e-a359-1145dec1b260")
-eventMsg = pymsteams.connectorcard("##REPLACE WITH PROPER WEBHOOK##")
+
+eventMsg = pymsteams.connectorcard("webhook url")
+
 
 def getProblemReport(event):
     print("Getting Problem Report...")
@@ -29,7 +34,7 @@ def getProblemReport(event):
             fileName= pathName.split("\\")
             blah = fileName[len(fileName)-1]
 
-            myMsg = pymsteams.connectorcard("https://mustangplumbingrr.webhook.office.com/webhookb2/480b28ef-9e5f-41ea-a054-69b691add8d5@f1799ac8-2ec2-4176-9072-180ec0e2aeca/IncomingWebhook/a8e96abd9fb64dccafce90bf026b3817/cb9afd51-7b6c-433e-a359-1145dec1b260")
+            myMsg = pymsteams.connectorcard("other webhook url")
             myMsg.color("a10d14")
             myMsg.text(blah + " is in \"!!Needs Builder Info\". It has a problem report:\n" + problemReportText)
             myMsg.send() 
@@ -41,76 +46,48 @@ def getProblemReport(event):
         # eventMsg.text(f"Get Problem Report failed for {event.src_path}")
         # eventMsg.send()
 
-# class MonitorFolder(FileSystemEventHandler):
-#     def on_created(self, event):
-#         print(event.src_path, event.event_type)
-#         pathName = str(event.src_path)
-#         fileName= pathName.split("\\")
-#         blah = fileName[len(fileName)-1]
+class MonitorFolder(FileSystemEventHandler):
+    def on_created(self, event):
+        print(event.src_path, event.event_type)
+        pathName = str(event.src_path)
+        fileName= pathName.split("\\")
+        blah = fileName[len(fileName)-1]
 
-#         print(getProblemReport(event))
-        
-#         myMsg.color("a10d14")
-#         myMsg.text(blah + " is in \"!!Needs Builder Info\". It has a problem report:\n" + getProblemReport(event))
-#         myMsg.send()   
-#     def on_moved(self, event):
-#         print(f"{event.src_path} was moved")
+        print(getProblemReport(event))
+    def on_moved(self, event):
+        print(f"{event.src_path} was moved")
 
-#         eventMsg.text(f"{event.src_path} was moved")
-#         eventMsg.send()
-#     def on_deleted(self, event):
-#         print(f"{event.src_path} was deleted/moved")
+        eventMsg.text(f"{event.src_path} was moved")
+        eventMsg.send()
+    def on_deleted(self, event):
+        print(f"{event.src_path} was deleted/moved")
 
-#         eventMsg.text(f"{event.src_path} was deleted/moved")
-#         eventMsg.send()
+        eventMsg.text(f"{event.src_path} was deleted/moved")
+        eventMsg.send()
     
-# class Folder:
-#     def __init__(self, path):
-#         self.path = path
-#         nameArray = str(self.path).split("\\")
-#         self.name = nameArray[len(nameArray)-1]
-#         self.createTime = time.ctime(os.path.getctime(self.path))
-#         self.age = math.ceil(int(time.time() - os.path.getctime(self.path)) / (60 * 60 * 24))
-#         self.amIOld(self.age)
-#         self.ProblemReport()
-#     def amIOld(self, age):
-#         if age > 10:
-#             self.old = True
-#         else:
-#             self.old = False
-#     def ProblemReport(self):
-#         txtList = [f for f in os.listdir(self.path) if f.endswith('.txt')]
 
-#         for title in txtList:
-#             if "problem" or "Problem" or "PROBLEM" in str(title):
-#                 pRPath = str(self.path + "\\" + title)
-#                 #self.problemReportPath = problemReportPath
-#             else:
-#                 return
-#         try:
-#             with open(pRPath, 'r') as blah:
-#                 self.pRText = blah.read()
-#         except:
-#             return
-#         # return problemReportText
+if __name__ == "__main__":
+    src_path = "C:\\Users\\bgonzalez\\Mustang Plumbing\\CAD Plans - General\\!! NEEDS BUILDER INFO"
+    
+    event_handler=MonitorFolder()
+    observer = Observer()
+    observer.schedule(event_handler, path=src_path)
+    print("Monitoring started")
 
+    eventMsg.color("0cc715")
+    eventMsg.text("Script is running...")
+    eventMsg.send()
+    observer.start()
+    try:
+        while(True):
+           time.sleep(1)
+           
+    except KeyboardInterrupt:
+            eventMsg.color("ed0707")
+            eventMsg.text("SCRIPT IS DOWN!!!!")
+            eventMsg.send()
 
+            observer.stop()
+            observer.join()
 
-# def generateLateList():
-#     needsBuilderInfoPath = "C:\\Users\\bgonzalez\\Mustang Plumbing\\CAD Plans - General\\!! NEEDS BUILDER INFO"
-#     folderList = []
-#     oldFolderList = []
-
-#     oldIndex = 0
-#     index = 0
-#     for entry in os.listdir(needsBuilderInfoPath):
-#         pathName = needsBuilderInfoPath + "\\" +  str(entry)
-#         folderList.append(Folder(pathName))
-
-#         print(f"Address: {folderList[index].name} is {folderList[index].age} days old")
-        
-#         if folderList[index].old:
-#             oldFolderList.append(folderList[index])
-#             print(f" and is old, with Problem: \n{folderList[index].pRText}")
-        
-#         index += 1
+print("SCRIPT IS DOWN")
