@@ -148,4 +148,3 @@ def createShortcut(cadFiles):
     except:
         print("createShortcut() issue")
     return None
-

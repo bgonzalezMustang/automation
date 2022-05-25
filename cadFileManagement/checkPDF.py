@@ -45,12 +45,6 @@ class StackCounter:
     def discrepancy(self):
         return ((self.stacksCount2inTables + self.stacksCount3inTables) - (self.stacksCount2inFloating + self.stacksCount3inFloating))/2
 
-    def isOdd(self):
-        if ((self.stacksCount2inFloating + self.stacksCount2inTables)%2 == 1) or ((self.stacksCount3inFloating + self.stacksCount3inTables)%2 == 1):
-            return True
-        else:
-            return False
-
 
 class PDFChecker:
 
@@ -391,9 +385,6 @@ class PDFChecker:
         if stackFailString != "":
             stackFail = True
             # failLog.append(stackFailString)
-        if stackCounter.isOdd():
-            failTest = True
-            failLog.append('Uneven count of stacks. Please verify that all stacks have table entries and vice versa\n')
 
         # Test to see if tables are empty
         emptyTable = False

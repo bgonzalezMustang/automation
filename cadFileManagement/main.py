@@ -22,6 +22,7 @@ class OnMyWatch:
         self.observer.schedule(event_handler, self.watchDirectory, recursive=True)
         self.observer.start()
         try:
+            print("File Manager Active...")
             while True:
                 time.sleep(5)
         except:
@@ -122,3 +123,4 @@ class Handler(FileSystemEventHandler):
 if __name__ == '__main__':
     watch = OnMyWatch()
     watch.run()
+    print("Cad File Management Stopped...")
