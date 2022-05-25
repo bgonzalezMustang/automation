@@ -1,5 +1,4 @@
-#https://mustangplumbingrr.webhook.office.com/webhookb2/480b28ef-9e5f-41ea-a054-69b691add8d5@f1799ac8-2ec2-4176-9072-180ec0e2aeca/IncomingWebhook/a8e96abd9fb64dccafce90bf026b3817/cb9afd51-7b6c-433e-a359-1145dec1b260
-#^webhook for notifications bot
+
 
 import pymsteams
 import os
@@ -11,7 +10,7 @@ import math
 from refData import *
 
 #myMsg = pymsteams.connectorcard("https://mustangplumbingrr.webhook.office.com/webhookb2/480b28ef-9e5f-41ea-a054-69b691add8d5@f1799ac8-2ec2-4176-9072-180ec0e2aeca/IncomingWebhook/a8e96abd9fb64dccafce90bf026b3817/cb9afd51-7b6c-433e-a359-1145dec1b260")
-eventMsg = pymsteams.connectorcard("https://mustangplumbingrr.webhook.office.com/webhookb2/480b28ef-9e5f-41ea-a054-69b691add8d5@f1799ac8-2ec2-4176-9072-180ec0e2aeca/IncomingWebhook/ef9c87f1340f44d29318c90f55856382/cb9afd51-7b6c-433e-a359-1145dec1b260")
+eventMsg = pymsteams.connectorcard("##REPLACE WITH PROPER WEBHOOK##")
 
 def getProblemReport(event):
     print("Getting Problem Report...")
