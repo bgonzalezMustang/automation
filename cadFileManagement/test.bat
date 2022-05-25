@@ -1,0 +1,1 @@
+powershell stop-process -name "python3.10"
