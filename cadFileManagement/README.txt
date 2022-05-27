@@ -101,7 +101,7 @@ Common Tasks/Updating:
     -To add a new builder to the Move to Finished script
         -Navigate to the json called builderInfo.json on the public user of the server at "S:Public/CAD CODE REFERENCE/builderInfo.json"
         -You can edit this file in any text editor
-        -Modify the builderPaths dictionary in the json to include new builder and folder names
+        -Modify the builderPaths dictionary in the json to include new builder and folder names for "FFC"(Finished from cad) and "DWG" (server folder)
         -Follow the naming convention in the other builders in the json file
         -Save the file to update changes
         -Restart the script to have changes take effect
