@@ -24,14 +24,14 @@ homePath = 'C:' + os.environ['HOMEPATH'].replace('\\','/') + '/'
 cadDWGsPath = 'S:/CAD/Plans'
 
 #Load info from the builderInfo.json file to create two dictionaries
-with open("builderInfo.json") as my_json:
+with open("S:\\Public\\CAD CODE REFERENCE\\builderInfo.json") as my_json:
     builder_json = json.load(my_json)
 
 builderCorrectSpellings = builder_json["builderCorrectSpellings"]
 builderPaths = builder_json["builderPaths"]
 
 #Load info from scriptFolderPaths.json to fill path variables (In json so folder structure can change)
-with open("scriptFolderPaths.json") as my_json:
+with open("S:\\Public\\CAD CODE REFERENCE\\scriptFolderPaths.json") as my_json:
     path_json = json.load(my_json)
 
 publicDownloadsPath = path_json["publicDownloadsPath"]
