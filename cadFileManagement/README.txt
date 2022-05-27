@@ -1,20 +1,40 @@
-This is the cad file management system. There are multiple python files, some of which are interconnected and some which are not.
-Below is the grouping of the files, and a description of their purpose.
+Intro:
 
-"Script folders":
-    These files handle moving files around on the cad onedrive. The check if a file is in a specific "script" folder, locate a cad plan based on the title of the pdf, and perform some operation based on the folder they are in.
+There are two distinct and seperate programs being run to automate many of the logistics of file management in the cad department: cadFileManagement and teamsBot.
+Their objective is to save time, reduce errors, and to create unified records of events.
+
+The cad file management system primarily moves folders around, creates shortcuts, and makes copies of certain files depending on their contents.
+It makes a shortcut to the dwg of a file when it is moved to ready to check.
+It makes a copy of a plan with an appended "OLD#" when it is moved to 'Needs corrections.'
+It automatically sorts the folder to the appropriate builder's folder in finished from cad when it is put in 'Move to finished'.
+
+The teams bot program exists to notify the coordinators when a plan needs further information, and to create a record of such events.
+It pulls information from a 'ProblemReport' text file, drafts a message to the coordinators with that information, and sends that message to the 'Needs Builder Info' team.
+It uses webhooks to accomplish the sending of messages within ms Teams.
+
+For an abstract overview, see the included flow chart diagrams.
+
+---------------------------------------------------------------------
+
+File grouping and locations:
+
+All code except the .bat files are stored on the CAD machine at "C:\Users\bgonzalez\OneDrive - Mustang Plumbing\Documents\Github\automation\CadFileManagement"
+
+"Cad File Management":
+    These files handle moving files around on the cad onedrive. They check if a file is in a specific "script" folder, locate a cad plan based on the title of the pdf, and perform some operation based on the folder they are in.
     They can move folders, create new files, copy files, change the name of files.
         -folderFunctions.py
         -main.py
         -refData.py
         -builderInfo.json
 
-"Needs Builder info":
+"Teams Bot":
     This file checks for when a plan is put in the "Needs builder info" folder, finds a problem report file within the folder, pulls the information from the problem report, and puts all of that into a teams message which is sent to the coordinators.
         -teamsBot.py
 
 "Cad Data tracking":
     This file counts the number of incoming plans in ready for cad. As each plan is added, it modifies a text file containing the count titled that day's date.
+    This file is no longer being run, but could be if needed.
         -planCounting.py
 
 "Check PDF":
@@ -24,17 +44,18 @@ Below is the grouping of the files, and a description of their purpose.
 ----------------------------------------------------------------------
 
 Where and how these scripts are run/hosted:
-    These scripts are run on a remote computer that was at some point also running quickbooks.
-    They are launched with a .bat file that runs command line commands to run the files.
-    This .bat file is automatically scheduled with Task Scheduler on the remote computer to run on startup of the machine. (This allows automatic resumption in the case of a power outage)
 
-    -myStartup.bat
-        This file actually launches the python files
-        It is triggered on startup of the machine
-    -test.bat
-        This file ends all existing python instances, then restarts the computer
-        It is triggered on a schedule at 3:00 AM.
-        This is done to help prevent Onedrive Syncing issues
+These scripts are run on a remote computer that was at some point also running quickbooks.
+They are launched with a .bat file that runs command line commands to run the files.
+This .bat file is automatically scheduled with Task Scheduler on the remote computer to run on startup of the machine. (This allows automatic resumption in the case of a power outage)
+
+-myStartup.bat
+    This file actually launches the python files
+    It is triggered on startup of the machine
+-test.bat
+    This file ends all existing python instances, then restarts the computer
+    It is triggered on a schedule at 3:00 AM.
+    This is done to help prevent Onedrive Syncing issues
 
 -----------------------------------------------------------------------
 
@@ -69,15 +90,28 @@ Known bugs and issues
 
 -------------------------------------------------------------------------
 
-General debugging
+General debugging/Troubleshooting:
 
     -Restarting the remote computer should solve most of these problems.
     -Periodically check all script folders to ensure that they are being moved properly.
     -Ensure that your own OneDrive is syncing properly
-    
+
+-------------------------------------------------------------------------
+
+Common Tasks/Updating:
+
     -To add a new builder to the Move to Finished script
         -Navigate to the json called builderInfo.json on the public user of the server at "S:Public/CAD CODE REFERENCE/builderInfo.json"
         -You can edit this file in any text editor
-        -Follow the naming convention in the other builders in the json
+        -Modify the builderPaths dictionary in the json to include new builder and folder names
+        -Follow the naming convention in the other builders in the json file
+        -Save the file to update changes
+        -Restart the script to have changes take effect
+
+    -To add an alternate spelling for builder
+        -Navigate to the json called builderInfo.json on the public user of the server at "S:Public/CAD CODE REFERENCE/builderInfo.json"
+        -You can edit this file in any text editor
+        -Modify the builderCorrectSpellings dictionary in the json to include alternate spelling
+        -Follow the naming convention in the other builders in the json file
         -Save the file to update changes
         -Restart the script to have changes take effect
