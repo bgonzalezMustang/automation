@@ -7,6 +7,7 @@ Below is the grouping of the files, and a description of their purpose.
         -folderFunctions.py
         -main.py
         -refData.py
+        -builderInfo.json
 
 "Needs Builder info":
     This file checks for when a plan is put in the "Needs builder info" folder, finds a problem report file within the folder, pulls the information from the problem report, and puts all of that into a teams message which is sent to the coordinators.
