@@ -12,8 +12,6 @@ The teams bot program exists to notify the coordinators when a plan needs furthe
 It pulls information from a 'ProblemReport' text file, drafts a message to the coordinators with that information, and sends that message to the 'Needs Builder Info' team.
 It uses webhooks to accomplish the sending of messages within ms Teams.
 
-For an abstract overview, see the included flow chart diagrams.
-
 ---------------------------------------------------------------------
 
 File grouping and locations:
@@ -113,5 +111,14 @@ Common Tasks/Updating:
         -You can edit this file in any text editor
         -Modify the builderCorrectSpellings dictionary in the json to include alternate spelling
         -Follow the naming convention in the other builders in the json file
+        -Save the file to update changes
+        -Restart the script to have changes take effect
+    
+    -To change file structure
+        **NOTE** Use extreme caution when making changes to this json!!! Make a backup of the file in case there are unforseen issues!!
+        -Navigate to the json called scriptFolderPaths.json on the public user of the server at "S:Public/CAD CODE REFERENCE/scriptFolderPaths.json"
+        -You can edit this file in any text editor
+        -Modify the scriptFolderPaths dictionary in the json to reflect the new file layout
+        -Follow the naming convention in the other paths in the json file
         -Save the file to update changes
         -Restart the script to have changes take effect
