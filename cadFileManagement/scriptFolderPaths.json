@@ -1,0 +1,12 @@
+{
+    "publicDownloadsPath" : "C:/Users/Public/Downloads",
+    "needsCorrectionPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/! - NEEDS CORRECTION",
+    "makeShortcutPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(0) - MAKE SHORTCUT",
+    "checkScriptPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(1) - CHECK SCRIPT",
+    "moveToFinishedPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(2) - MOVE TO FINISHED",
+    "moveToRTCPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/- SCRIPT FOLDERS/(1) - MOVE TO RTC",
+    "cadInProgressPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/0 - IN PROGRESS",
+    "readyToCheckPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/1 - READY TO CHECK",
+    "checkInProgressPath" : "Mustang Plumbing/CAD Plans - General/CAD - WORKING/2 - CHECK IN PROGRESS",
+    "finishedFromCADPath" : "Mustang Plumbing/CAD Plans - General/FINISHED FROM CAD"
+}
