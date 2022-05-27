@@ -72,4 +72,11 @@ General debugging
 
     -Restarting the remote computer should solve most of these problems.
     -Periodically check all script folders to ensure that they are being moved properly.
-    -Ensure that your own OneDrive is working properly
+    -Ensure that your own OneDrive is syncing properly
+    
+    -To add a new builder to the Move to Finished script
+        -Navigate to the json called builderInfo.json on the public user of the server at "S:Public/CAD CODE REFERENCE/builderInfo.json"
+        -You can edit this file in any text editor
+        -Follow the naming convention in the other builders in the json
+        -Save the file to update changes
+        -Restart the script to have changes take effect
